@@ -1,0 +1,47 @@
+# ------------------------------------------------------------------
+# Academic Performance Analytics & Prediction Platform - ignore rules
+# ------------------------------------------------------------------
+
+# Local project MySQL instance (data files + logs - NEVER commit)
+.mysql/
+
+# Node / frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+yarn-error.log*
+
+# Maven / backend
+backend/target/
+*.class
+
+# Local secrets / machine specific overrides - NEVER commit these.
+# Keep the committed *.example templates so a fresh clone knows what to set.
+.env
+.env.*
+!*.env.example
+**/.env
+**/.env.*
+!**/.env.example
+backend/src/main/resources/application-local.properties
+backend/src/main/resources/application-*.properties
+!backend/src/main/resources/application.properties
+!backend/src/main/resources/application-*.example
+*.local
+*.secret
+*.pem
+*.key
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
