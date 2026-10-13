@@ -19,22 +19,27 @@ import org.springframework.web.bind.annotation.RestController;
 import com.academic.performance.dto.PageResponse;
 import com.academic.performance.dto.SubjectRequest;
 import com.academic.performance.dto.SubjectResponse;
+import com.academic.performance.service.AccessScopeService;
 import com.academic.performance.service.SubjectService;
 
 /**
  * REST endpoints for Subjects.
  *
  * <p>Supports optional filters: {@code departmentId}, {@code semester} and
- * {@code search} (name or code), plus pagination/sorting.
+ * {@code search} (name or code), plus pagination/sorting. A signed-in FACULTY
+ * member only sees the subjects they teach; an ADMIN sees every subject.
  */
 @RestController
 @RequestMapping("/api/subjects")
 public class SubjectController {
 
     private final SubjectService subjectService;
+    private final AccessScopeService accessScopeService;
 
-    public SubjectController(SubjectService subjectService) {
+    public SubjectController(SubjectService subjectService,
+                             AccessScopeService accessScopeService) {
         this.subjectService = subjectService;
+        this.accessScopeService = accessScopeService;
     }
 
     @GetMapping
@@ -42,7 +47,11 @@ public class SubjectController {
                                               @RequestParam(required = false) Integer semester,
                                               @RequestParam(required = false) String search,
                                               @PageableDefault(size = 20, sort = "code") Pageable pageable) {
-        return subjectService.list(departmentId, semester, search, pageable);
+        // Faculty scope is applied AFTER the client filters, so a scoped caller
+        // cannot widen their own view by passing a different department id.
+        AccessScopeService.AccessScope scope = accessScopeService.currentScope();
+        Long scopedDepartmentId = scope.departmentId() != null ? scope.departmentId() : departmentId;
+        return subjectService.list(scopedDepartmentId, scope.facultyId(), semester, search, pageable);
     }
 
     @GetMapping("/{id:\\d+}")

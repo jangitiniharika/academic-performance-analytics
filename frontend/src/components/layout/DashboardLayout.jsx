@@ -19,9 +19,12 @@ const NAV = {
     { to: '/app/analytics', label: 'Analytics' },
     { to: '/app/predictions', label: 'Predictions' },
     { to: '/app/alerts', label: 'Alerts' },
+    { to: '/app/profile', label: 'Profile' },
   ],
   FACULTY: [
     { to: '/app/dashboard', label: 'Dashboard', end: true },
+    { to: '/app/students', label: 'Students' },
+    { to: '/app/subjects', label: 'Subjects' },
     { to: '/app/attendance', label: 'Attendance' },
     { to: '/app/exams', label: 'Exams' },
     { to: '/app/marks', label: 'Marks' },
@@ -31,6 +34,7 @@ const NAV = {
     { to: '/app/analytics', label: 'Analytics' },
     { to: '/app/predictions', label: 'Predictions' },
     { to: '/app/alerts', label: 'Alerts' },
+    { to: '/app/profile', label: 'Profile' },
   ],
   STUDENT: [
     { to: '/app/dashboard', label: 'Dashboard', end: true },
@@ -39,6 +43,7 @@ const NAV = {
     { to: '/app/my/assignments', label: 'My Assignments' },
     { to: '/app/my/results', label: 'My Results' },
     { to: '/app/my/prediction', label: 'My Prediction' },
+    { to: '/app/profile', label: 'Profile' },
   ],
 };
 

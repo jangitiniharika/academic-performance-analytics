@@ -11,6 +11,7 @@ import LoginPage from './pages/auth/LoginPage.jsx';
 import RegisterPage from './pages/auth/RegisterPage.jsx';
 
 import RoleDashboardPage from './pages/dashboards/RoleDashboardPage.jsx';
+import ProfilePage from './pages/ProfilePage.jsx';
 
 import DepartmentsPage from './pages/management/DepartmentsPage.jsx';
 import SubjectsPage from './pages/management/SubjectsPage.jsx';
@@ -63,12 +64,17 @@ export default function App() {
         <Route element={<DashboardLayout />}>
           <Route path="/app" element={<RoleDashboardPage />} />
           <Route path="/app/dashboard" element={<RoleDashboardPage />} />
+          <Route path="/app/profile" element={<ProfilePage />} />
+
+          {/* Management: faculty may READ students and subjects (read-only). */}
+          <Route element={<ProtectedRoute roles={STAFF} />}>
+            <Route path="/app/students" element={<StudentsPage />} />
+            <Route path="/app/subjects" element={<SubjectsPage />} />
+          </Route>
 
           {/* Admin-only management */}
           <Route element={<ProtectedRoute roles={ADMIN} />}>
             <Route path="/app/departments" element={<DepartmentsPage />} />
-            <Route path="/app/subjects" element={<SubjectsPage />} />
-            <Route path="/app/students" element={<StudentsPage />} />
             <Route path="/app/faculty" element={<FacultyPage />} />
           </Route>
 

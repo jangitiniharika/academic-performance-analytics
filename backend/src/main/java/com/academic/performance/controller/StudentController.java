@@ -19,28 +19,36 @@ import org.springframework.web.bind.annotation.RestController;
 import com.academic.performance.dto.PageResponse;
 import com.academic.performance.dto.StudentRequest;
 import com.academic.performance.dto.StudentResponse;
+import com.academic.performance.service.AccessScopeService;
 import com.academic.performance.service.StudentService;
 
 /**
  * REST endpoints for Students (management view: ADMIN + FACULTY).
  *
  * <p>A student's own profile is served separately by {@code /api/student/me}.
+ * A FACULTY member only sees the students of their own department; an ADMIN sees
+ * every student.
  */
 @RestController
 @RequestMapping("/api/students")
 public class StudentController {
 
     private final StudentService studentService;
+    private final AccessScopeService accessScopeService;
 
-    public StudentController(StudentService studentService) {
+    public StudentController(StudentService studentService, AccessScopeService accessScopeService) {
         this.studentService = studentService;
+        this.accessScopeService = accessScopeService;
     }
 
     @GetMapping
     public PageResponse<StudentResponse> list(@RequestParam(required = false) Long departmentId,
                                               @RequestParam(required = false) String search,
                                               @PageableDefault(size = 20, sort = "rollNumber") Pageable pageable) {
-        return studentService.list(departmentId, search, pageable);
+        // A scoped faculty member is pinned to their own department.
+        AccessScopeService.AccessScope scope = accessScopeService.currentScope();
+        Long scopedDepartmentId = scope.departmentId() != null ? scope.departmentId() : departmentId;
+        return studentService.list(scopedDepartmentId, search, pageable);
     }
 
     @GetMapping("/{id:\\d+}")

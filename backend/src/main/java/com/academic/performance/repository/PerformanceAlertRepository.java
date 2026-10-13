@@ -26,21 +26,31 @@ public interface PerformanceAlertRepository extends JpaRepository<PerformanceAle
 
     long countByAcknowledgedFalse();
 
+    long countByAcknowledgedFalseAndStudentDepartmentId(Long departmentId);
+
+    List<PerformanceAlert> findByAcknowledgedFalseAndStudentDepartmentIdOrderByCreatedAtDesc(Long departmentId);
+
     List<PerformanceAlert> findBySeverity(AlertSeverity severity);
 
     List<PerformanceAlert> findByStudentIdAndAcknowledgedFalseOrderByCreatedAtDesc(Long studentId);
 
     boolean existsByStudentIdAndTypeAndAcknowledgedFalse(Long studentId, AlertType type);
 
-    /** Paginated, filtered listing; a {@code null} filter is ignored. */
+    /**
+     * Paginated, filtered listing; a {@code null} filter is ignored. The
+     * {@code departmentId} filter backs the faculty data-scope (a faculty member
+     * only sees alerts for students in their department).
+     */
     @Query("""
             select a from PerformanceAlert a
             where (:studentId is null or a.student.id = :studentId)
+              and (:departmentId is null or a.student.department.id = :departmentId)
               and (:severity is null or a.severity = :severity)
               and (:acknowledged is null or a.acknowledged = :acknowledged)
             order by a.createdAt desc
             """)
     Page<PerformanceAlert> search(@Param("studentId") Long studentId,
+                                  @Param("departmentId") Long departmentId,
                                   @Param("severity") AlertSeverity severity,
                                   @Param("acknowledged") Boolean acknowledged,
                                   Pageable pageable);

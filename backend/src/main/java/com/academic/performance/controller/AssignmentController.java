@@ -19,24 +19,34 @@ import org.springframework.web.bind.annotation.RestController;
 import com.academic.performance.dto.AssignmentRequest;
 import com.academic.performance.dto.AssignmentResponse;
 import com.academic.performance.dto.PageResponse;
+import com.academic.performance.service.AccessScopeService;
 import com.academic.performance.service.AssignmentService;
 
-/** REST endpoints for Assignments (Stage 7). Restricted to ADMIN + FACULTY. */
+/**
+ * REST endpoints for Assignments (Stage 7). Restricted to ADMIN + FACULTY.
+ * A FACULTY member only sees the assignments they created; an ADMIN sees all.
+ */
 @RestController
 @RequestMapping("/api/assignments")
 public class AssignmentController {
 
     private final AssignmentService assignmentService;
+    private final AccessScopeService accessScopeService;
 
-    public AssignmentController(AssignmentService assignmentService) {
+    public AssignmentController(AssignmentService assignmentService,
+                                AccessScopeService accessScopeService) {
         this.assignmentService = assignmentService;
+        this.accessScopeService = accessScopeService;
     }
 
     @GetMapping
     public PageResponse<AssignmentResponse> list(@RequestParam(required = false) Long subjectId,
                                                  @RequestParam(required = false) Long facultyId,
                                                  @PageableDefault(size = 20, sort = "dueDate") Pageable pageable) {
-        return assignmentService.list(subjectId, facultyId, pageable);
+        // A scoped faculty member is pinned to the assignments they created.
+        AccessScopeService.AccessScope scope = accessScopeService.currentScope();
+        Long scopedFacultyId = scope.facultyId() != null ? scope.facultyId() : facultyId;
+        return assignmentService.list(subjectId, scopedFacultyId, pageable);
     }
 
     @GetMapping("/{id:\\d+}")

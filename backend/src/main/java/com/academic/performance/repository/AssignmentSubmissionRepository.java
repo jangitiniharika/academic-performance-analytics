@@ -31,6 +31,12 @@ public interface AssignmentSubmissionRepository extends JpaRepository<Assignment
 
     long countByStatus(SubmissionStatus status);
 
+    /** Pending submissions for the assignments created by one faculty member. */
+    long countByStatusAndAssignmentFacultyId(SubmissionStatus status, Long facultyId);
+
+    /** Pending submissions for the students of one department. */
+    long countByStatusAndStudentDepartmentId(SubmissionStatus status, Long departmentId);
+
     /** Paginated, filtered listing; a {@code null} filter is ignored. */
     @Query("""
             select s from AssignmentSubmission s

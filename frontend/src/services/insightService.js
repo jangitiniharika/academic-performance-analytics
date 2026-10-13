@@ -30,6 +30,7 @@ export const dashboardService = {
 
 // --- Student self-service (Stage 15) ---------------------------------------
 export const myService = {
+  profile: async () => (await apiClient.get('/student/me')).data,
   dashboard: async () => (await apiClient.get('/student/dashboard')).data,
   attendance: async (params) => (await apiClient.get('/student/attendance', { params })).data,
   attendancePercentage: async () => (await apiClient.get('/student/attendance/percentage')).data,

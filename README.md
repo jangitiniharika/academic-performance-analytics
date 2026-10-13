@@ -601,13 +601,22 @@ The student is resolved from the JWT, so no id is ever accepted from the client:
 | `/` | public | Landing page with live backend health |
 | `/login`, `/register` | public | Sign in / create (student) account |
 | `/app/dashboard` | any | Role-dispatched dashboard (Admin / Faculty / Student) |
-| `/app/departments`, `/app/subjects`, `/app/students`, `/app/faculty` | ADMIN | Management CRUD |
+| `/app/departments`, `/app/faculty` | ADMIN | Department / Faculty CRUD |
+| `/app/subjects`, `/app/students` | ADMIN + FACULTY | Subject / Student lists (Faculty get read-only views) |
 | `/app/attendance`, `/app/exams`, `/app/marks`, `/app/assignments`, `/app/submissions`, `/app/results` | ADMIN/FACULTY | Academic record CRUD |
 | `/app/analytics` | ADMIN/FACULTY | Charts + KPIs |
 | `/app/predictions` | ADMIN/FACULTY | Generate & inspect predictions |
 | `/app/alerts` | ADMIN/FACULTY | Early-warning alerts |
 | `/app/my/attendance`, `/app/my/marks`, `/app/my/assignments`, `/app/my/results`, `/app/my/prediction` | STUDENT | Own records |
+| `/app/profile` | any | Signed-in user's profile (all roles) |
 | `/forbidden`, `*` | any | 403 / 404 pages |
+
+> **Faculty data scope.** A faculty caller only ever sees data derived from their own
+> account (never a value sent by the browser): the backend resolves the logged-in
+> username to a faculty profile and limits students/alerts to that department and
+> subjects/assignments/pending submissions to that faculty member. Admin logins are
+> unscoped; a faculty account with no profile is also unscoped. This scoping is
+> enforced server-side in addition to the route guards above.
 
 ---
 
@@ -628,21 +637,60 @@ The student is resolved from the JWT, so no id is ever accepted from the client:
 
 **Login uses the email address**, not the username.
 
-Besides the accounts, the seeder creates a **demonstration academic history** for
-the demo student so no screen is empty:
+Besides the accounts, the seeder creates a **realistic demonstration data set** so
+no screen is empty:
 
-* Department **Computer Science (`CS`)**, faculty profile **`FAC1001`**, student
-  profile **`CS2023001`**.
-* Three current-semester subjects (`CS301` Data Structures, `CS302` Database
-  Management Systems, `CS303` Operating Systems) with a **Mid-Term** exam each,
-  and three previous-semester subjects (`CS201`, `CS202`, `CS203`) carrying grades.
-* Deliberately **mixed** attendance and marks — attendance is **73.33 %** (below
-  the 75 % threshold) and one subject is at 60 % — so the analytics, prediction and
-  alert features have meaningful, non-trivial data to display.
+* Department **Computer Science (`CS`)**, faculty profile **`FAC1001`**
+  (`faculty1` teaches every subject), and student profile **`CS2023001`**
+  (`student1`).
+* **Six subjects** — three current-semester (`CS301` Data Structures, `CS302`
+  Database Management Systems, `CS303` Operating Systems) with a **Mid-Term** exam
+  each, plus three previous-semester subjects (`CS201`, `CS202`, `CS203`) used for
+  grades and CGPA.
+* **Eleven students** (`CS2023001` … `CS2023011`) spread across three deliberate
+  performance bands — **strong**, **average** and **weak** — so analytics,
+  prediction and early-warning screens have genuine variety. Only `CS2023001` has a
+  login account; the rest are roster records visible to Admin/Faculty.
+* **Six assignments** with a mix of past and future due dates and
+  **pending / submitted / late / graded** submissions for every student.
+* Attendance (15 sessions per current subject), internal marks and
+  previous-semester results/CGPA for every student.
+* **Early-warning alerts** for the weak/borderline students (attendance below 75 %,
+  internal marks below 50 %, or a MEDIUM/HIGH prediction).
 
-Passwords are stored **only** as BCrypt hashes; the plain text exists solely in
-this table and in `application.properties` (dev defaults). Never commit real
-secrets.
+All of this is **idempotent**: rows are only inserted when missing and existing data
+is never updated or deleted. The early-warning rules run once per student — a
+student is skipped once a prediction exists — so restarting the backend never piles
+up duplicate alerts or predictions.
+
+### Loading or resetting the demo data (development only)
+
+The seeder runs automatically on startup while `app.seed.enabled=true` (the dev
+default). To load the demo data into a **throw-away development database**, run the
+backend once with seeding enabled and pointing only at that database:
+
+```powershell
+# 1. Start the project-local dev database.
+.\database\start-mysql.cmd
+
+# 2. Run the app once with seeding ON, against the DEV database only.
+cd backend
+$env:SPRING_DATASOURCE_URL = 'jdbc:mysql://127.0.0.1:3306/academic_analytics?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8'
+$env:APP_SEED_ENABLED = 'true'
+java -jar target\academic-performance-platform-0.0.1-SNAPSHOT.jar  # Ctrl+C after "Demo seed check complete"
+```
+
+> **Production never seeds.** The seeder is guarded by
+> `@ConditionalOnProperty(name = "app.seed.enabled", havingValue = "true")` and the
+> production environment sets `APP_SEED_ENABLED=false`, so demo accounts and demo
+> rows are never created outside development. To reset the demo set, drop and
+> recreate the dev schema (`database/create-and-seed-db.cmd`) and start the app again.
+
+**Demo accounts are created securely:** passwords come from the `SEED_ADMIN_PASSWORD`,
+`SEED_FACULTY_PASSWORD` and `SEED_STUDENT_PASSWORD` environment variables and are
+stored **only** as BCrypt hashes — plain text is never persisted. For a real
+account, use `POST /api/auth/register` and then set its role in the database.
+
 
 ---
 

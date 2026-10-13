@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.academic.performance.dto.AdminDashboardResponse;
 import com.academic.performance.dto.FacultyDashboardResponse;
+import com.academic.performance.service.AccessScopeService;
 import com.academic.performance.service.DashboardService;
 
 /** Admin and Faculty dashboard summaries (Stages 16-17). ADMIN + FACULTY. */
@@ -14,9 +15,12 @@ import com.academic.performance.service.DashboardService;
 public class DashboardController {
 
     private final DashboardService dashboardService;
+    private final AccessScopeService accessScopeService;
 
-    public DashboardController(DashboardService dashboardService) {
+    public DashboardController(DashboardService dashboardService,
+                               AccessScopeService accessScopeService) {
         this.dashboardService = dashboardService;
+        this.accessScopeService = accessScopeService;
     }
 
     @GetMapping("/admin")
@@ -26,6 +30,7 @@ public class DashboardController {
 
     @GetMapping("/faculty")
     public FacultyDashboardResponse faculty() {
-        return dashboardService.facultyDashboard();
+        AccessScopeService.AccessScope scope = accessScopeService.currentScope();
+        return dashboardService.facultyDashboard(scope.departmentId(), scope.facultyId());
     }
 }

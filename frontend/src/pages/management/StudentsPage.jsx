@@ -1,5 +1,6 @@
 import CrudResourcePage from '../../components/ui/CrudResourcePage.jsx';
 import useOptions from '../../hooks/useOptions.js';
+import { useAuth } from '../../auth/AuthContext.jsx';
 import { departmentService, studentService } from '../../services/managementService.js';
 import { toInt, toNumber } from '../../utils/form.js';
 
@@ -13,6 +14,9 @@ const columns = [
 ];
 
 export default function StudentsPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+
   const departmentOptions = useOptions(departmentService.list, (item) => ({
     value: String(item.id),
     label: `${item.code} — ${item.name}`,
@@ -53,6 +57,9 @@ export default function StudentsPage() {
       columns={columns}
       fields={fields}
       filters={filters}
+      canCreate={isAdmin}
+      canEdit={isAdmin}
+      canDelete={isAdmin}
       size={10}
       toFormValues={(row) => ({
         rollNumber: row.rollNumber,

@@ -71,16 +71,49 @@ public class DashboardService {
                 alertService.recentOpen(RECENT_ALERT_LIMIT));
     }
 
+    /** Faculty dashboard over all data (the ADMIN view). */
     @Transactional(readOnly = true)
     public FacultyDashboardResponse facultyDashboard() {
+        return facultyDashboard(null, null);
+    }
+
+    /**
+     * Faculty dashboard, optionally limited to one department (students and
+     * alerts) and one faculty member (subjects, assignments, pending
+     * submissions). A {@code null} scope means "the whole institution" and is
+     * used for ADMIN callers.
+     */
+    @Transactional(readOnly = true)
+    public FacultyDashboardResponse facultyDashboard(Long departmentId, Long facultyId) {
+        long totalStudents = departmentId == null
+                ? studentRepository.count()
+                : studentRepository.countByDepartmentId(departmentId);
+
+        long totalSubjects = facultyId == null
+                ? subjectRepository.count()
+                : subjectRepository.countByFacultyId(facultyId);
+
+        long totalAssignments = facultyId == null
+                ? assignmentRepository.count()
+                : assignmentRepository.countByFacultyId(facultyId);
+
+        long pendingSubmissions = facultyId == null
+                ? submissionRepository.countByStatus(SubmissionStatus.PENDING)
+                : submissionRepository.countByStatusAndAssignmentFacultyId(
+                        SubmissionStatus.PENDING, facultyId);
+
+        long openAlerts = departmentId == null
+                ? alertRepository.countByAcknowledgedFalse()
+                : alertRepository.countByAcknowledgedFalseAndStudentDepartmentId(departmentId);
+
         return new FacultyDashboardResponse(
-                studentRepository.count(),
-                subjectRepository.count(),
-                assignmentRepository.count(),
-                submissionRepository.countByStatus(SubmissionStatus.PENDING),
-                alertRepository.countByAcknowledgedFalse(),
-                atRiskStudents(),
-                alertService.recentOpen(RECENT_ALERT_LIMIT));
+                totalStudents,
+                totalSubjects,
+                totalAssignments,
+                pendingSubmissions,
+                openAlerts,
+                atRiskStudents(departmentId),
+                alertService.recentOpen(departmentId, RECENT_ALERT_LIMIT));
     }
 
     @Transactional(readOnly = true)
@@ -101,8 +134,21 @@ public class DashboardService {
     /** Students whose fresh prediction lands in the MEDIUM or HIGH band. */
     @Transactional(readOnly = true)
     public List<RiskStudent> atRiskStudents() {
+        return atRiskStudents(null);
+    }
+
+    /**
+     * Students whose fresh prediction lands in the MEDIUM or HIGH band, limited
+     * to one department when {@code departmentId} is not {@code null}.
+     */
+    @Transactional(readOnly = true)
+    public List<RiskStudent> atRiskStudents(Long departmentId) {
+        List<Student> students = departmentId == null
+                ? studentRepository.findAll()
+                : studentRepository.findByDepartmentId(departmentId);
+
         List<RiskStudent> atRisk = new ArrayList<>();
-        for (Student student : studentRepository.findAll()) {
+        for (Student student : students) {
             var prediction = predictionService.evaluate(student);
             if (prediction.riskLevel() == RiskLevel.LOW) {
                 continue;

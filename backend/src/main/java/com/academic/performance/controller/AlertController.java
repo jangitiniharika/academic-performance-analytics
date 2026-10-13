@@ -15,17 +15,24 @@ import org.springframework.web.bind.annotation.RestController;
 import com.academic.performance.dto.AlertResponse;
 import com.academic.performance.dto.PageResponse;
 import com.academic.performance.entity.AlertSeverity;
+import com.academic.performance.service.AccessScopeService;
 import com.academic.performance.service.AlertService;
 
-/** Early-warning alert endpoints (Stage 11). Restricted to ADMIN + FACULTY. */
+/**
+ * Early-warning alert endpoints (Stage 11). Restricted to ADMIN + FACULTY.
+ * A FACULTY member only sees the alerts raised for their own department's
+ * students; an ADMIN sees every alert.
+ */
 @RestController
 @RequestMapping("/api/alerts")
 public class AlertController {
 
     private final AlertService alertService;
+    private final AccessScopeService accessScopeService;
 
-    public AlertController(AlertService alertService) {
+    public AlertController(AlertService alertService, AccessScopeService accessScopeService) {
         this.alertService = alertService;
+        this.accessScopeService = accessScopeService;
     }
 
     @GetMapping
@@ -34,7 +41,8 @@ public class AlertController {
             @RequestParam(required = false) AlertSeverity severity,
             @RequestParam(required = false) Boolean acknowledged,
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-        return alertService.list(studentId, severity, acknowledged, pageable);
+        AccessScopeService.AccessScope scope = accessScopeService.currentScope();
+        return alertService.list(studentId, scope.departmentId(), severity, acknowledged, pageable);
     }
 
     @GetMapping("/student/{studentId:\\d+}")

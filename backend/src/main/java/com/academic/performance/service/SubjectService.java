@@ -39,8 +39,10 @@ public class SubjectService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<SubjectResponse> list(Long departmentId, Integer semester, String search, Pageable pageable) {
-        Page<Subject> page = subjectRepository.search(departmentId, semester, TextUtils.normalizeSearch(search), pageable);
+    public PageResponse<SubjectResponse> list(Long departmentId, Long facultyId, Integer semester,
+                                              String search, Pageable pageable) {
+        Page<Subject> page = subjectRepository.search(
+                departmentId, facultyId, semester, TextUtils.normalizeSearch(search), pageable);
         return PageResponse.from(page.map(subjectMapper::toResponse));
     }
 

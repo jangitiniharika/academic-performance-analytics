@@ -22,6 +22,10 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
 
     List<Assignment> findByFacultyId(Long facultyId);
 
+    long countByFacultyId(Long facultyId);
+
+    long countBySubjectId(Long subjectId);
+
     /** Assignments whose due date has already passed. */
     List<Assignment> findByDueDateBefore(LocalDate date);
 

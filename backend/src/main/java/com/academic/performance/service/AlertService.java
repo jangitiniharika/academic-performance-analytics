@@ -53,9 +53,10 @@ public class AlertService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<AlertResponse> list(Long studentId, AlertSeverity severity,
+    public PageResponse<AlertResponse> list(Long studentId, Long departmentId, AlertSeverity severity,
                                             Boolean acknowledged, Pageable pageable) {
-        Page<PerformanceAlert> page = alertRepository.search(studentId, severity, acknowledged, pageable);
+        Page<PerformanceAlert> page =
+                alertRepository.search(studentId, departmentId, severity, acknowledged, pageable);
         return PageResponse.from(page.map(AlertResponse::of));
     }
 
@@ -73,6 +74,22 @@ public class AlertService {
     @Transactional(readOnly = true)
     public List<AlertResponse> recentOpen(int limit) {
         return alertRepository.findByAcknowledgedFalseOrderByCreatedAtDesc().stream()
+                .limit(limit)
+                .map(AlertResponse::of)
+                .toList();
+    }
+
+    /**
+     * The most recent open alerts, optionally limited to one department (the
+     * faculty data-scope). A {@code null} department means "all departments".
+     */
+    @Transactional(readOnly = true)
+    public List<AlertResponse> recentOpen(Long departmentId, int limit) {
+        if (departmentId == null) {
+            return recentOpen(limit);
+        }
+        return alertRepository.findByAcknowledgedFalseAndStudentDepartmentIdOrderByCreatedAtDesc(departmentId)
+                .stream()
                 .limit(limit)
                 .map(AlertResponse::of)
                 .toList();

@@ -1,5 +1,6 @@
 import CrudResourcePage from '../../components/ui/CrudResourcePage.jsx';
 import useOptions from '../../hooks/useOptions.js';
+import { useAuth } from '../../auth/AuthContext.jsx';
 import { departmentService, facultyService, subjectService } from '../../services/managementService.js';
 import { toInt } from '../../utils/form.js';
 
@@ -13,6 +14,9 @@ const columns = [
 ];
 
 export default function SubjectsPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+
   const departmentOptions = useOptions(departmentService.list, (item) => ({
     value: String(item.id),
     label: `${item.code} — ${item.name}`,
@@ -58,6 +62,9 @@ export default function SubjectsPage() {
       columns={columns}
       fields={fields}
       filters={filters}
+      canCreate={isAdmin}
+      canEdit={isAdmin}
+      canDelete={isAdmin}
       toFormValues={(row) => ({
         code: row.code,
         name: row.name,
