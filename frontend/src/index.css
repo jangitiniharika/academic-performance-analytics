@@ -1202,3 +1202,122 @@ textarea.input {
     min-width: 100%;
   }
 }
+
+/* ==================================================================
+   Homepage (landing) - minimal public entry point
+   ================================================================== */
+.landing {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: clamp(420px, 62vh, 720px);
+  padding: var(--space-6) 0;
+  overflow: hidden;
+}
+
+/* Soft, subtle colour accents sitting behind the panel. */
+.landing::before,
+.landing::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.landing::before {
+  top: -80px;
+  left: -40px;
+  background: rgba(124, 58, 237, 0.18);
+}
+
+.landing::after {
+  right: -40px;
+  bottom: -90px;
+  background: rgba(67, 56, 202, 0.18);
+}
+
+.landing__panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+  padding: clamp(var(--space-5), 6vw, var(--space-7)) clamp(var(--space-4), 6vw, var(--space-6));
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.landing__mark {
+  display: grid;
+  place-items: center;
+  width: 66px;
+  height: 66px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  color: #fff;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  box-shadow: var(--shadow-md);
+}
+
+.landing__name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-primary-dark);
+}
+
+.landing__title {
+  max-width: 22ch;
+  font-size: clamp(1.85rem, 4.2vw, 2.9rem);
+  font-weight: 800;
+  line-height: 1.13;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.landing__message {
+  max-width: 54ch;
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
+  line-height: 1.65;
+  color: var(--color-text-muted);
+}
+
+.landing__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.landing__btn {
+  min-width: 150px;
+  padding: 0.8rem 1.8rem;
+  font-size: 1rem;
+  border-radius: 999px;
+}
+
+@media (max-width: 480px) {
+  .landing__actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .landing__btn {
+    width: 100%;
+  }
+}
